@@ -25,8 +25,10 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-include_once('simple_html_dom.php');
+$dom_script = 'simple_html_dom.php';
+if(is_readable($dom_script))
+	@include_once($dom_script);
+else echo "Couldn't activate Simple HTML DOM script';
 
 function wikipedia_contribution()  {
 	$search_term = "macariojames";
