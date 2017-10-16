@@ -72,7 +72,10 @@ function wikipedia_user_contribution()  {
 	 
 	$html = file_get_html($url);
 
-	$output = "<div class='col-md-12' style='clear: both: margin: 0 auto;'> <h5>Wikipedia Contributions (most recent order)</h5><ol class='wikipedia-contributions'>";
+	$output = "
+	<div class='col-md-12' style='clear: both: margin: 0 auto;'> 
+		<h5>Wikipedia Contributions (most recent order)</h5>
+			<ol class='wikipedia-contributions'>";
 
 	foreach($html->find('ul[class=mw-contributions-list] li') as $ct) {
 		foreach($ct->find('a') as $a) {
