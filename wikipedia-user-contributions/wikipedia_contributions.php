@@ -72,9 +72,10 @@ function wikipedia_user_contribution()  {
 	 
 	$html = file_get_html($url);
 
+	// uses Bootstrap classes
 	$output = "
-	<div class='col-md-12' style='clear: both: margin: 0 auto;'> 
-		<h5>Wikipedia Contributions (most recent order)</h5>
+	<div class='col-md-12 clearfix'> 
+		<h5>Wikipedia User Contributions (Latest Displayed First)</h5>
 			<ol class='wikipedia-contributions'>";
 
 	foreach($html->find('ul[class=mw-contributions-list] li') as $ct) {
@@ -87,12 +88,12 @@ function wikipedia_user_contribution()  {
 		$output .= "<li>" . $ct->innertext . "</li>";
 	}
 
-	$output .= "</ol></div>";
+	$output .= "</ol>
+	</div>";
 
 	$html->clear();
 
 	return $output;
-	 
 }
 
 // adds a shortcode to display in your page/post easily
