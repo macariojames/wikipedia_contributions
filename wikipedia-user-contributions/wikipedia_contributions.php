@@ -41,7 +41,7 @@ function wikipedia_uc_options_page(){ ?>
 }
 
 function add_wikipedia_uc_menu_item(){
-	add_menu_page("Wikipedia UC", "Wikipedia UC", "manage_options", "theme-panel", "wikipedia_uc_options_page", null, 99);
+	add_menu_page("Wikipedia UC", "Wikipedia UC", "manage_options", "plugin-panel", "wikipedia_uc_options_page", null, 99);
 }
 
 add_action("admin_menu", "add_wikipedia_uc_menu_item");
@@ -51,7 +51,7 @@ function display_wikipedia_username() { ?>
 <?php
 }
 
-function display_theme_panel_fields()
+function display_plugin_panel_fields()
 {
 	add_settings_section("section", "All Settings", null, "plugin-options");
 	
@@ -60,7 +60,7 @@ function display_theme_panel_fields()
     register_setting("section", "wikipedia_username");
 }
 
-add_action("admin_init", "display_theme_panel_fields");
+add_action("admin_init", "display_plugin_panel_fields");
 
 $dom_script = 'simple_html_dom.php';
 include($dom_script);
