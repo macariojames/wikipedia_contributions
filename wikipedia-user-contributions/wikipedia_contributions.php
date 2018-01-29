@@ -76,7 +76,7 @@ function wikipedia_user_contribution()  {
 	$output = "
 	<div class='col-md-12 clearfix'> 
 		<h5>Wikipedia User Contributions (Latest Displayed First)</h5>
-			<ol class='wikipedia-contributions'>";
+			<ol class='wikipedia-contributions' reversed>";
 
 	foreach($html->find('ul[class=mw-contributions-list] li') as $ct) {
 		foreach($ct->find('a') as $a) {
