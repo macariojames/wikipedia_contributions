@@ -62,6 +62,8 @@ function display_plugin_panel_fields()
 
 add_action("admin_init", "display_plugin_panel_fields");
 
+
+// Start code for plugin implementation
 $dom_script = 'simple_html_dom.php';
 include($dom_script);
 
