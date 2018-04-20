@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: Wikipedia User Contributions
- * Description: Grab a Wikipedia's user's contributions list and display it on the page
- * Version: 0.2
+ * Plugin Name: Wikipedia User Contributions Display
+ * Description: Grab a Wikipedia's user's contributions list and display it on a page via shortcode
+ * Version: 0.3
  * Author: Macario James
  * Author URI: http://macariojames.com
  * License: GPL2
  */
 
-/*  Copyright 2017 Macario James - email : hellothere@macariojames.com
+/*  Copyright 2018 Macario James - email : hellothere@macariojames.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@
 */
 
 // Creating the Settings page
-function wikipedia_uc_options_page(){ ?>
+function wikipedia_ucd_options_page(){ ?>
     <div class="wrap">
-    <h1>Wikipedia User Contributions Options</h1>
+    <h1>Wikipedia User Contributions Display Options</h1>
     <form method="post" action="options.php">
         <?php
             settings_fields("section");
@@ -41,7 +41,15 @@ function wikipedia_uc_options_page(){ ?>
 }
 
 function add_wikipedia_uc_menu_item(){
-	add_menu_page("Wikipedia UC", "Wikipedia UC", "manage_options", "plugin-panel", "wikipedia_uc_options_page", null, 99);
+	add_menu_page(
+		"Wikipedia UCD", 
+		"Wikipedia UCD", 
+		"manage_options", 
+		"plugin-panel", 
+		"wikipedia_ucd_options_page", 
+		null, 
+		99
+	);
 }
 
 add_action("admin_menu", "add_wikipedia_uc_menu_item");
@@ -51,36 +59,59 @@ function display_wikipedia_username() { ?>
 <?php
 }
 
-function display_plugin_panel_fields()
+function wuc_plugin_settings_init()
 {
-	add_settings_section("section", "All Settings", null, "plugin-options");
+	add_settings_section(
+		"section", 
+		"All Settings", 
+		"wuc_plugin_settings_callback", 
+		"plugin-options"
+	);
 	
-	add_settings_field("wikipedia_username", "Wikipedia Username", "display_wikipedia_username", "plugin-options", "section");
+	add_settings_field(
+		"wikipedia_username", 
+		"Wikipedia Username", 
+		"display_wikipedia_username", 
+		"plugin-options", 
+		"section"
+	);
 
-    register_setting("section", "wikipedia_username");
+    register_setting(
+    	"section", 			 	// Options group
+    	"wikipedia_username" 	// Options name/database
+    	"wuc_settings_sanitize" // Sanitize callback function 
+    );
+}
+add_action("admin_init", "wuc_plugin_settings_init");
+
+function wuc_plugin_settings_callback() {
+	echo "<p>Settings Callback. Idk what this does really </p>";
 }
 
-add_action("admin_init", "display_plugin_panel_fields");
-
+function wuc_settings_sanitize() {
+	return isset( $input ) ? true : false;
+}
 
 // Start code for plugin implementation
 $dom_script = 'simple_html_dom.php';
 include($dom_script);
 
-function wikipedia_user_contribution()  {
-	$wu = get_option('wikipedia_username');
+function wikipedia_user_contributions()  {
+	$wu 	= get_option('wikipedia_username');
+	$wu 	= sanitize_text_field($wu);
+	$limit  = get_option('limit_results');
+	$url 	= "https://en.wikipedia.org/wiki/Special:Contributions/".$wu;
+	$html 	= file_get_html($url);
+	var $i;
 
-	$url = "https://en.wikipedia.org/wiki/Special:Contributions/".$wu;
-	 
-	$html = file_get_html($url);
-
-	// uses Bootstrap classes
+	// uses Bootstrap classes to display contributions
 	$output = "
 	<div class='col-md-12 clearfix'> 
 		<h5>Wikipedia User Contributions (Latest Displayed First)</h5>
 			<ol class='wikipedia-contributions' reversed>";
 
 	foreach($html->find('ul[class=mw-contributions-list] li') as $ct) {
+		if ( (!empty($limit)) && ($i === $limit) ) break;
 		foreach($ct->find('a') as $a) {
 			// prepends each link's href with wikipedia.org since 
 			// by default wikipedia uses relative paths ~mj
@@ -88,6 +119,7 @@ function wikipedia_user_contribution()  {
 			$a->target = '_blank'; // adds attribute to open in new window
 		}
 		$output .= "<li>" . $ct->innertext . "</li>";
+		$i++;
 	}
 
 	$output .= "</ol>
@@ -99,6 +131,6 @@ function wikipedia_user_contribution()  {
 }
 
 // adds a shortcode to display in your page/post easily
-add_shortcode('wuc', 'wikipedia_user_contribution');
+add_shortcode('wuc', 'wikipedia_user_contributions');
 
 ?>
