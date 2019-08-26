@@ -28,11 +28,14 @@
 // Creating the Settings page
 function wikipedia_ucd_options_page(){ ?>
     <div class="wrap">
-    <h1>Wikipedia User Contributions Display Options</h1>
+    <h1>Wikipedia User Contributions Display &mdash; Options</h1>
     <form method="post" action="options.php">
         <?php
-            settings_fields("section");
+            // Output the hidden fields, nonce, etc. 
+            settings_fields("wucdPlugin");
+            // Output the settings section(s)
             do_settings_sections("plugin-options");      
+            // Submit button
             submit_button(); 
         ?>          
     </form>
@@ -40,7 +43,7 @@ function wikipedia_ucd_options_page(){ ?>
 <?php 
 }
 
-function add_wikipedia_uc_menu_item(){
+function add_wikipedia_ucd_menu_item(){
 	add_menu_page(
 		"Wikipedia UCD", 
 		"Wikipedia UCD", 
@@ -52,19 +55,19 @@ function add_wikipedia_uc_menu_item(){
 	);
 }
 
-add_action("admin_menu", "add_wikipedia_uc_menu_item");
+add_action("admin_menu", "add_wikipedia_ucd_menu_item");
 
 function display_wikipedia_username() { ?>
     <input type="text" name="wikipedia_username" id="wikipedia_username" value="<?php echo get_option('wikipedia_username'); ?>" />
 <?php
 }
 
-function wuc_plugin_settings_init()
+function wikipedia_ucd_plugin_settings_init()
 {
 	add_settings_section(
-		"section", 
+		"wucdPlugin", 
 		"All Settings", 
-		"wuc_plugin_settings_callback", 
+		"wikipedia_ucd_plugin_settings_callback", 
 		"plugin-options"
 	);
 	
@@ -73,21 +76,21 @@ function wuc_plugin_settings_init()
 		"Wikipedia Username", 
 		"display_wikipedia_username", 
 		"plugin-options", 
-		"section"
+		"wucdPlugin"
 	);
 
     register_setting(
-    	"section", 			 	// Options group
+    	"wucdPlugin", 			 	// Options group
     	"wikipedia_username", 	// Options name/database
-    	"wuc_settings_sanitize" // Sanitize callback function 
+    	"wikipedia_ucd_settings_sanitize" // Sanitize callback function 
     );
 }
 
-function wuc_plugin_settings_callback() {
-	echo "<p>Settings Callback. Idk what this does really </p>";
+function wikipedia_ucd_plugin_settings_callback() {
+	echo "<p>Settings Callback. Idk what this does really. ~mj </p>";
 }
 
-function wuc_settings_sanitize() {
+function wikipedia_ucd_settings_sanitize() {
 	return isset( $input ) ? true : false;
 }
 
@@ -95,7 +98,7 @@ function wuc_settings_sanitize() {
 $dom_script = 'simple_html_dom.php';
 include($dom_script);
 
-function wikipedia_user_contributions()  {
+function wikipedia_user_contributions_display()  {
 	$wu 	= get_option('wikipedia_username');
 	$wu 	= sanitize_text_field($wu);
 	$limit  = get_option('limit_results');
@@ -130,6 +133,6 @@ function wikipedia_user_contributions()  {
 }
 
 // adds a shortcode to display in your page/post easily
-add_shortcode('wuc', 'wikipedia_user_contributions');
+add_shortcode('wucd', 'wikipedia_user_contributions_display');
 
 ?>
