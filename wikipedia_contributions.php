@@ -8,7 +8,7 @@
  * License: GPL2
  */
 
-/*  Copyright 2018 Macario James - email : hellothere@macariojames.com
+/*  Copyright 2018 Macario James - email : hello@macariojames.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,11 +78,10 @@ function wuc_plugin_settings_init()
 
     register_setting(
     	"section", 			 	// Options group
-    	"wikipedia_username" 	// Options name/database
+    	"wikipedia_username", 	// Options name/database
     	"wuc_settings_sanitize" // Sanitize callback function 
     );
 }
-add_action("admin_init", "wuc_plugin_settings_init");
 
 function wuc_plugin_settings_callback() {
 	echo "<p>Settings Callback. Idk what this does really </p>";
@@ -102,7 +101,7 @@ function wikipedia_user_contributions()  {
 	$limit  = get_option('limit_results');
 	$url 	= "https://en.wikipedia.org/wiki/Special:Contributions/".$wu;
 	$html 	= file_get_html($url);
-	var $i;
+	//var i;
 
 	// uses Bootstrap classes to display contributions
 	$output = "
