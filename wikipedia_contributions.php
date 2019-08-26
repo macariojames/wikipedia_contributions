@@ -26,15 +26,15 @@
 */
 
 // Creating the Settings page
-function wikipedia_ucd_options_page(){ ?>
+function wucd_options_page(){ ?>
     <div class="wrap">
     <h1>Wikipedia User Contributions Display &mdash; Options</h1>
     <form method="post" action="options.php">
         <?php
             // Output the hidden fields, nonce, etc. 
-            settings_fields("wucdPlugin");
+            settings_fields("wucd_option_group");
             // Output the settings section(s)
-            do_settings_sections("plugin-options");      
+            do_settings_sections("wucd"); // $page - must be same as in add_settings_field and add_settings_section();      
             // Submit button
             submit_button(); 
         ?>          
@@ -43,54 +43,57 @@ function wikipedia_ucd_options_page(){ ?>
 <?php 
 }
 
-function add_wikipedia_ucd_menu_item(){
+function add_wucd_admin_menu_item(){
 	add_menu_page(
 		"Wikipedia UCD", 
 		"Wikipedia UCD", 
 		"manage_options", 
-		"plugin-panel", 
-		"wikipedia_ucd_options_page", 
+		"wucd-options", 
+		"wucd_options_page", 
 		null, 
 		99
 	);
 }
 
-add_action("admin_menu", "add_wikipedia_ucd_menu_item");
+add_action("admin_menu", "add_wucd_admin_menu_item");
 
-function display_wikipedia_username() { ?>
-    <input type="text" name="wikipedia_username" id="wikipedia_username" value="<?php echo get_option('wikipedia_username'); ?>" />
+function display_wikipedia_username() {?>
+    <input type="text" name="wikipedia_username" id="wikipedia_username"
+    value="<?php echo get_option('wikipedia_username'); ?>" />
 <?php
 }
 
-function wikipedia_ucd_plugin_settings_init()
+function wucd_settings_init()
 {
-	add_settings_section(
-		"wucdPlugin", 
-		"All Settings", 
-		"wikipedia_ucd_plugin_settings_callback", 
-		"plugin-options"
-	);
-	
-	add_settings_field(
-		"wikipedia_username", 
-		"Wikipedia Username", 
-		"display_wikipedia_username", 
-		"plugin-options", 
-		"wucdPlugin"
-	);
-
-    register_setting(
-    	"wucdPlugin", 			 	// Options group
-    	"wikipedia_username", 	// Options name/database
-    	"wikipedia_ucd_settings_sanitize" // Sanitize callback function 
+	register_setting(
+    	"wucd_option_group", 	// $option_group - unique name for option set
+    	"wikipedia_username", 	// $option_name - name of each option (more than one option in the same register_settings() function requires array of options
+    	"wucd_settings_sanitize" // $sanitize_callback - section/field callback function to validate data; 
     );
+    
+    add_settings_section(
+		"wucd_settings_section", // $id - unique ID for the section / field
+		"All Settings", // $title - the title of the section/field (displayed on options page)
+		"wucd_settings_callback", // $callback - callback function to be executed
+		"wucd" // $page - Options page name (use __FILE__ if creating new options page);
+    );
+
+	add_settings_field(
+		"wikipedia_username", // $id - unique ID for the section / field
+		"Wikipedia Username", // $title - the title of the section / field (displayed on the options page)
+		"display_wikipedia_username", // $callback 	
+        "wucd", // $page - options page name (use __FILE__ if creating new options page); must be same as $page in add_settings_section
+        "wucd_settings_section" // $section; must be same as add_settings_section $id
+        //$args = array()
+	);
+}
+add_action( 'admin_init', 'wucd_settings_init' );
+
+function wucd_settings_callback() {
+    //echo "<p>Settings Callback. Idk what this does really. ~mj </p>";
 }
 
-function wikipedia_ucd_plugin_settings_callback() {
-	echo "<p>Settings Callback. Idk what this does really. ~mj </p>";
-}
-
-function wikipedia_ucd_settings_sanitize() {
+function wucd_settings_sanitize() {
 	return isset( $input ) ? true : false;
 }
 
@@ -98,41 +101,50 @@ function wikipedia_ucd_settings_sanitize() {
 $dom_script = 'simple_html_dom.php';
 include($dom_script);
 
-function wikipedia_user_contributions_display()  {
+function wucd()  {
 	$wu 	= get_option('wikipedia_username');
-	$wu 	= sanitize_text_field($wu);
-	$limit  = get_option('limit_results');
+	echo $wu;
+    $wu 	= sanitize_text_field($wu);
+	echo $wu;
+    //$limit  = get_option('limit_results');
 	$url 	= "https://en.wikipedia.org/wiki/Special:Contributions/".$wu;
-	$html 	= file_get_html($url);
+	$html 	= file_get_html($url); // added last 3 parameters since php 7.1 breaks stuff
 	//var i;
 
 	// uses Bootstrap classes to display contributions
-	$output = "
+	$output = "$wu
 	<div class='col-md-12 clearfix'> 
-		<h5>Wikipedia User Contributions (Latest Displayed First)</h5>
+		<strong>Wikipedia User Contributions &mdash; Most Recent Displayed
+        First</strong>
 			<ol class='wikipedia-contributions' reversed>";
-
-	foreach($html->find('ul[class=mw-contributions-list] li') as $ct) {
-		if ( (!empty($limit)) && ($i === $limit) ) break;
-		foreach($ct->find('a') as $a) {
-			// prepends each link's href with wikipedia.org since 
-			// by default wikipedia uses relative paths ~mj
-			$a->href = 'https://en.wikipedia.org' . $a->href;
-			$a->target = '_blank'; // adds attribute to open in new window
-		}
-		$output .= "<li>" . $ct->innertext . "</li>";
-		$i++;
-	}
+    //echo $html;
+    if (!empty($url)) {
+        if(!empty($html)) {
+            $content = $html->find('ul[class=mw-contributions-list] li');
+	        foreach($content as $ct) {
+		        if ( (!empty($limit)) && ($i === $limit) ) break;
+		        foreach($ct->find('a') as $a) {
+			        // prepends each link's href with wikipedia.org since 
+			        // by default wikipedia uses relative paths ~mj
+			        $a->href = 'https://en.wikipedia.org' . $a->href;
+			        $a->target = '_blank'; // adds attribute to open in new window
+		        }
+		        $output .= "<li>" . $ct->innertext . "</li>";
+		        $i++;
+	        }
+        }
+    }
 
 	$output .= "</ol>
 	</div>";
 
-	$html->clear();
+	if(!empty($html)) 
+        $html->clear();
 
 	return $output;
 }
 
 // adds a shortcode to display in your page/post easily
-add_shortcode('wucd', 'wikipedia_user_contributions_display');
+add_shortcode('wucd', 'wucd');
 
 ?>
