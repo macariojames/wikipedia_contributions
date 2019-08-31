@@ -1,0 +1,1 @@
+<?php // Silence is golden. The sky is blue. ~mj
