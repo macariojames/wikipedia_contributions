@@ -24,12 +24,39 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-add_action( 'admin_init', 'wucd_settings_init_fn' );
-add_action( 'admin_menu', 'wucd_add_admin_menu_item' );
-register_activation_hook(__FILE__, 'wucd_add_defaults_to_db');
+
+//Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+} // Exit if accessed directly
+
+define( 'MJ_WUCD_PLUGIN_VERSION', '0.3.0' );
+
+// debug scripts
+//define ( 'MJ_WUCD_PLUGIN_ENABLE_DEBUG', 'true' );
+
+/**
+ * Deactivate plugin
+ */
+function mj_wucd_deactivation() {
+    if (!current_user_can('activate_plugins')) {
+        return;
+    }
+
+    $plugin = isset($_REQUEST['plugin']) ? $_REQUEST['plugin'] : '';
+    check_admin_referer("deactivate-plugin_{$plugin}");
+
+    // Delete WUCD init option
+    delete_option(MJ_WUCD_OPTION_FIELD_KEY);
+}
+register_deactivation_hook( __FILE__, 'mj_wucd_deactivation' );
+
+add_action( 'admin_init', 'mj_wucd_settings_init_fn' );
+add_action( 'admin_menu', 'mj_wucd_add_admin_menu_item' );
+register_activation_hook(__FILE__, 'mj_wucd_add_defaults_to_db');
 
 // Creating the Settings page
-function wucd_options_page_fn(){ ?>
+function mj_wucd_options_page_fn(){ ?>
     <!--// Start Wikipedia User Contribution Display by Macario James \\-->
     <div class="wrap">
         <h1>Wikipedia User Contributions Display &mdash; Options</h1>
@@ -52,7 +79,7 @@ function wucd_options_page_fn(){ ?>
 <?php 
 }
 
-function wucd_setting_wikipedia_username() {
+function mj_wucd_setting_wikipedia_username() {
     $options = (array) get_option('plugin_options');
     ?>
     <input type='text' name='plugin_options[wikipedia_username]'
@@ -60,7 +87,7 @@ function wucd_setting_wikipedia_username() {
 <?php
 }
 
-function wucd_settings_init_fn() {
+function mj_wucd_settings_init_fn() {
 	register_setting(
     	__FILE__, 	// $option_group - unique name for option set
     	"plugin_options",	// $option_name - name of each option (more than one option in the same register_settings() function requires array of options
@@ -84,13 +111,13 @@ function wucd_settings_init_fn() {
     add_settings_field(
         'chkbox1', 
         'Restore Defaults Upon Reactivation?',
-        'wucd_setting_chk1_fn', 
+        'mj_wucd_setting_chk1_fn', 
         __FILE__, 
         'main_settings_section'
     );
 }
 
-function wucd_add_admin_menu_item(){
+function mj_wucd_add_admin_menu_item(){
 	add_options_page(
 		"Wikipedia UCD Page", 
 		"Wikipedia UCD", 
@@ -101,17 +128,17 @@ function wucd_add_admin_menu_item(){
 }
 
 
-function wucd_settings_fn() {
+function mj_wucd_settings_fn() {
     //echo "<p>Settings Callback. Idk what this does really. ~mj </p>";
 }
 
-function wucd_plugin_options_validate() {
+function mj_wucd_plugin_options_validate() {
 	return isset( $input ) ? true : false;
 }
 
 
 // Define default option settings
-function wucd_add_defaults_to_db() {
+function mj_wucd_add_defaults_to_db() {
     $tmp = (array) get_option('plugin_options');
     if(($tmp['chkbox1'] == 'on') || (!is_array($tmp))) {
         $arr = array(
@@ -123,7 +150,7 @@ function wucd_add_defaults_to_db() {
     }
 }
 
-function wucd_setting_chk1_fn() {
+function mj_wucd_setting_chk1_fn() {
 	$options = (array) get_option('plugin_options');
 	if($options['chkbox1']) { 
         $checked = ' checked="checked" '; 
@@ -131,7 +158,7 @@ function wucd_setting_chk1_fn() {
 	echo "<input ".$checked." id='plugin_chk1' name='plugin_options[chkbox1]' type='checkbox' />";
 }
 
-/*function wucd_plugin_options_validate($input) {
+/*function mj_wucd_plugin_options_validate($input) {
 	// Check our textbox option field contains no HTML tags - if so strip them out
 	$input['text_string'] =  wp_filter_nohtml_kses($input['text_string']);
 	return $input; // return validated input
@@ -141,7 +168,7 @@ function wucd_setting_chk1_fn() {
 $dom_script = 'simple_html_dom.php';
 include($dom_script);
 
-function wucd() {
+function mj_wucd() {
 	$wu 	= get_option('wikipedia_username');
 	//echo $wu;
     $wu 	= sanitize_text_field($wu);
@@ -185,6 +212,6 @@ function wucd() {
 }
 
 // adds a shortcode to display in your page/post easily
-add_shortcode('wucd', 'wucd');
+add_shortcode('wucd', 'mj_wucd');
 
 ?>
